@@ -1,6 +1,3 @@
-require 'json'
-require 'right_aws'
-
 #
 #  An SQS client
 #
@@ -27,6 +24,15 @@ require 'right_aws'
 module Workling
   module Clients
     class SqsClient < Workling::Clients::BrokerBase
+
+      def self.load
+        begin
+          require 'json'
+          require 'right_aws'
+        rescue LoadError => e
+          raise WorklingError.new("WORKLING: couldn't find the right_aws gen")
+        end
+      end
 
       unless defined?(AWS_MAX_QUEUE_NAME)
         AWS_MAX_QUEUE_NAME = 80
