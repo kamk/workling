@@ -13,7 +13,7 @@ module Workling
     # requires worklings so that they are added to routing.
     def self.discover!
       Workling.load_path.each do |p|
-        Dir.glob(p).each { |wling| require wling }
+        Dir.glob(p).each { |wling| require File.join(".", wling) }
       end
     end
   end
