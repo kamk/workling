@@ -33,7 +33,7 @@ module Workling
 
     # expose a method using a custom queue name
     def self.expose(method, options)
-      self.exposed_methods[method.to_s] = options[:as]
+      self.exposed_methods[method] = options[:as]
     end
 
     # identify the queue for a given method
