@@ -32,7 +32,7 @@ module Workling
 
       # subscribe to a queue
       def subscribe(key)
-        @amq.queue(queue_for(key)).subscribe do |value|
+        @amq.queue(queue_for(key), :durable => true).subscribe do |value|
           data = Marshal.load(value) rescue value
           yield data
         end
