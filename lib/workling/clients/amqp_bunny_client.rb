@@ -33,7 +33,7 @@ module Workling
 
       # subscribe to a queue
       def subscribe(key)
-        @bunny.queue(queue_for(key)).subscribe(:timeout => 30) do |value|
+        queue_for(key).subscribe(:timeout => 30) do |value|
           data = Marshal.load(value) rescue value
           yield data
         end
@@ -41,17 +41,18 @@ module Workling
 
       # request and retrieve work
       def retrieve(key)
-        @bunny.queue(queue_for(key)).pop[:payload]
+        queue_for(key).pop[:payload]
       end
 
       def request(key, value)
         data = Marshal.dump(value)
-        @bunny.queue(queue_for(key)).publish(data)
+        queue_for(key).publish(data)
       end
 
       private
         def queue_for(key)
-          "#{Workling.config[:prefix]}#{key}"
+          queue_options = Workling.config[:queue_options] || {}
+          @bunny.queue "#{Workling.config[:prefix]}#{key}", queue_options
         end
 
     end

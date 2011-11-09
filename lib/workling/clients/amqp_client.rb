@@ -32,19 +32,25 @@ module Workling
 
       # subscribe to a queue
       def subscribe(key)
-        @amq.queue(queue_for(key), :durable => true).subscribe do |value|
+        queue_for(key).subscribe do |value|
           data = Marshal.load(value) rescue value
           yield data
         end
       end
 
       # request and retrieve work
-      def retrieve(key); @amq.queue(queue_for(key)); end
-      def request(key, value); @amq.queue(queue_for(key)).publish(Marshal.dump(value)); end
+      def retrieve(key)
+        queue_for(key)
+      end
+
+      def request(key, value)
+        queue_for(key).publish(Marshal.dump(value))
+      end
 
       private
         def queue_for(key)
-          "#{Workling.config[:prefix]}#{key}"
+          queue_options = Workling.config[:queue_options] || {}
+          @amq.queue "#{Workling.config[:prefix]}#{key}", queue_options
         end
     end
   end
