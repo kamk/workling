@@ -38,8 +38,8 @@ module Workling
 
     # identify the queue for a given method
     def self.queue_for(method)
-      if self.exposed_methods.has_key?(method.to_s)
-        self.exposed_methods[method.to_s]
+      if self.exposed_methods.has_key?(method)
+        self.exposed_methods[method]
       else
         "#{ self.to_s.tableize }/#{ method }".split("/").join("__") # Don't split with : because it messes up memcache stats
       end
