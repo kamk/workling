@@ -12,10 +12,6 @@ gem 'activesupport'
 require 'active_support/inflector'
 require 'active_support/core_ext/hash/keys'
 
-class Hash #:nodoc:
-  include ActiveSupport::CoreExtensions::Hash::Keys
-end
-
 require 'yaml'
 
 module Workling
