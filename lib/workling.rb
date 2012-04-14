@@ -33,7 +33,8 @@ module Workling
 
   def self.path(*args)
     if defined?(Rails)
-      File.join(Rails.root, *args)
+      #File.join(Rails.root, *args)
+      File.join(File.expand_path('../..', __FILE__), *args)
     else
       File.join(Dir.pwd, *args)
     end
