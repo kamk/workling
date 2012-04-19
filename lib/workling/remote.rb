@@ -8,15 +8,6 @@ module Workling
 
     # which object to use for routing
     mattr_writer :routing
-    def self.routing
-      @@routing ||= Workling::Routing::ClassAndMethodRouting.new
-    end
-
-    # which client to use for dispatching
-    mattr_accessor :client
-    def self.client
-      @@client ||= Workling.select_and_build_client
-    
     # set the desired runner here. this is initialized with Workling.default_runner. 
     mattr_accessor :dispatcher
     
@@ -25,6 +16,16 @@ module Workling
     @@invoker ||= Workling::Remote::Invokers::ThreadedPoller
     # mattr_accessor :signup_invoker
     # @@signup_invoker ||= Workling::Remote::Invokers::ThreadedPoller
+    
+    def self.routing
+      @@routing ||= Workling::Routing::ClassAndMethodRouting.new
+    end
+
+    # which client to use for dispatching
+    mattr_accessor :client
+    def self.client
+      @@client ||= Workling.select_and_build_client
+    end
     
     # retrieve the dispatcher or instantiate it using the defaults
     def self.dispatcher
