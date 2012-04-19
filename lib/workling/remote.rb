@@ -16,6 +16,19 @@ module Workling
     mattr_accessor :client
     def self.client
       @@client ||= Workling.select_and_build_client
+    
+    # set the desired runner here. this is initialized with Workling.default_runner. 
+    mattr_accessor :dispatcher
+    
+    # set the desired invoker. this class grabs work from the job broker and executes it. 
+    mattr_accessor :invoker
+    @@invoker ||= Workling::Remote::Invokers::ThreadedPoller
+    # mattr_accessor :signup_invoker
+    # @@signup_invoker ||= Workling::Remote::Invokers::ThreadedPoller
+    
+    # retrieve the dispatcher or instantiate it using the defaults
+    def self.dispatcher
+      @@dispatcher ||= Workling.default_runner
     end
 
     # generates a unique identifier for this particular job. 
