@@ -1,5 +1,3 @@
-require 'workling/clients/base'
-
 #
 #  This client can be used for all Queue Servers that speak Memcached, such as Starling. 
 #
@@ -11,12 +9,26 @@ require 'workling/clients/base'
 #
 module Workling
   module Clients
-    class MemcacheQueueClient < Workling::Clients::Base
-      
-      # the class with which the connection is instantiated
-      cattr_accessor :memcache_client_class
-      @@memcache_client_class ||= ::MemCache
-      
+    class MemcacheQueueClient < Workling::Clients::BrokerBase
+
+      def self.installed?
+        begin
+          require 'starling' 
+        rescue LoadError
+        end
+
+        Object.const_defined? "Starling"
+      end
+
+      def self.load
+        begin
+          gem 'memcache-client'
+          require 'memcache'
+        rescue Gem::LoadError
+          Workling::Base.logger.info "WORKLING: couldn't find memcache-client. Install: \"gem install memcache-client\". "
+        end
+      end
+
       # the url with which the memcache client expects to reach starling
       attr_accessor :queueserver_urls
       
@@ -32,17 +44,23 @@ module Workling
       #  to queueserver.
       #
       def connect
-        @queueserver_urls = Workling.config[:listens_on].split(',').map { |url| url ? url.strip : url }
+        listens_on = Workling.config[:listens_on] || "localhost:22122"
+        @queueserver_urls = listens_on.split(',').map { |url| url ? url.strip : url }
         options = [@queueserver_urls, Workling.config[:memcache_options]].compact
-        self.connection = MemcacheQueueClient.memcache_client_class.new(*options)
-        
+        self.connection = ::MemCache.new(*options)
+
         raise_unless_connected!
       end
-      
+
       # closes the memcache connection
       def close
-        self.connection.flush_all
-        self.connection.reset
+        begin
+          self.connection.flush_all
+        rescue MemCache::MemCacheError => err
+          STDERR.puts "Memcache client doesn't respond to flush all"
+        ensure
+          self.connection.reset
+        end
       end
 
       # implements the client job request and retrieval 
@@ -55,7 +73,7 @@ module Workling
           get(key)
         rescue MemCache::MemCacheError => e
           # failed to enqueue, raise a workling error so that it propagates upwards
-          raise Workling::WorklingError.new("#{e.class.to_s} - #{e.message}")        
+          raise Workling::WorklingConnectionError.new("#{e.class.to_s} - #{e.message}")        
         end
       end
             
@@ -69,6 +87,14 @@ module Workling
           end
         end
         
+        [:get, :set].each do |method|
+          class_eval <<-EOS
+          def #{method}(*args, &block)
+            self.connection.#{method}(*args, &block)
+          end
+          EOS
+        end
+
         # delegates directly through to the memcache connection. 
         def method_missing(method, *args)
           begin
@@ -77,6 +103,7 @@ module Workling
             raise Workling::WorklingConnectionError.new("#{e.class.to_s} - #{e.message}")        
           end
         end
+
     end
   end
 end
