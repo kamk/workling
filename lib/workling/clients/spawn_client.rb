@@ -18,11 +18,11 @@ module Workling
 
       def self.installed?
         begin
-          require 'spawn'
+          require 'spawnling'
         rescue LoadError
         end
 
-        Object.const_defined? "Spawn"
+        Object.const_defined? "Spawnling"
       end
 
       cattr_writer :options
@@ -31,10 +31,8 @@ module Workling
         @@options ||= { :method => (RAILS_ENV == "test" || RAILS_ENV == "development" ? :fork : :thread) }
       end
 
-      include Spawn if installed?
-
       def dispatch(clazz, method, options = {})
-        spawn(SpawnClient.options) do # exceptions are trapped in here. 
+        Spawnling.new(SpawnClient.options) do # exceptions are trapped in here. 
           Workling.find(clazz, method).dispatch_to_worker_method(method, options)
         end
 
