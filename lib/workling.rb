@@ -12,10 +12,6 @@ gem 'activesupport'
 require 'active_support/inflector'
 require 'active_support/core_ext/hash/keys'
 
-class Hash #:nodoc:
-  include ActiveSupport::CoreExtensions::Hash::Keys
-end
-
 require 'yaml'
 
 module Workling
@@ -37,7 +33,8 @@ module Workling
 
   def self.path(*args)
     if defined?(Rails)
-      File.join(Rails.root, *args)
+      #File.join(Rails.root, *args)
+      File.join(File.expand_path('../..', __FILE__), *args)
     else
       File.join(Dir.pwd, *args)
     end
